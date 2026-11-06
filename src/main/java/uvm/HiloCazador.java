@@ -1,13 +1,17 @@
 package uvm;
+package com.cazador;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.logging.Logger;
 
 public class HiloCazador extends Thread {
     
-    private char[][] matrizDatos;
-    private JLabel[][] etiquetasMatriz;
-    private JLabel lblContador;
+    private static final Logger LOGGER = Logger.getLogger(HiloCazador.class.getName());
+
+    private final char[][] matrizDatos;
+    private final JLabel[][] etiquetasMatriz;
+    private final JLabel lblContador;
     private int contadorSimbolos;
 
     public HiloCazador(char[][] matrizDatos, JLabel[][] etiquetasMatriz, JLabel lblContador) {
@@ -34,7 +38,9 @@ public class HiloCazador extends Thread {
                         etiquetasMatriz[i][j].setVisible(true);
                         Thread.sleep(500); 
                     } catch (InterruptedException e) {
-                        System.out.println("Error en el hilo: " + e.getMessage());
+                        LOGGER.warning("Error en el hilo: " + e.getMessage());
+                        // Restablece el estado de interrupción del hilo (SonarQube rule java:S2142)
+                        Thread.currentThread().interrupt();
                     }
 
                     matrizDatos[i][j] = 'X';
@@ -48,7 +54,8 @@ public class HiloCazador extends Thread {
                 try {
                     Thread.sleep(200);
                 } catch (InterruptedException e) {
-                    System.out.println("Error en la pausa de escaneo: " + e.getMessage());
+                    LOGGER.warning("Error en la pausa de escaneo: " + e.getMessage());
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -66,7 +73,8 @@ public class HiloCazador extends Thread {
         int columnas = matriz[0].length;
 
         JFrame ventana = new JFrame("Cazador de @");
-        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // Se utiliza el acceso estático correcto mediante WindowConstants (SonarQube rule java:S3252)
+        ventana.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         ventana.setSize(400, 450);
         ventana.setLayout(new BorderLayout());
 
