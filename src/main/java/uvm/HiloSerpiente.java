@@ -1,6 +1,8 @@
 package uvm;
 
 import java.awt.Color;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
@@ -10,6 +12,8 @@ con letras de color azul y escribiendo números consecutivos (1, 2, 3...).
 Puede recibir una señal para Terminar y una señal de pausa y continuar.
 */
 public class HiloSerpiente extends Thread {
+
+    private static final Logger LOGGER = Logger.getLogger(HiloSerpiente.class.getName());
 
     private JLabel[][] matriz;
     private int retardo = 150;
@@ -28,31 +32,41 @@ public class HiloSerpiente extends Thread {
     @Override
     public void run() {
         if (matriz == null) {
-            System.err.println("HiloSerpiente: La matriz no ha sido asignada.");
+            LOGGER.log(Level.WARNING, "HiloSerpiente: La matriz no ha sido asignada.");
             return;
         }
 
-        int contador = 1;
-
         try {
             while (!terminado) {
-                for (int fila = 0; fila < matriz.length && !terminado; fila++) {
-                    if (fila % 2 == 0) {
-                        // Fila par: izquierda a derecha ->
-                        for (int col = 0; col < matriz[fila].length && !terminado; col++) {
-                            procesarCelda(fila, col, contador++);
-                        }
-                    } else {
-                        // Fila impar: derecha a izquierda <-
-                        for (int col = matriz[fila].length - 1; col >= 0 && !terminado; col--) {
-                            procesarCelda(fila, col, contador++);
-                        }
-                    }
-                }
-                contador = 1;
+                recorrerMatriz();
             }
         } catch (InterruptedException e) {
+            LOGGER.log(Level.INFO, "HiloSerpiente interrumpido.");
+            Thread.currentThread().interrupt();
         }
+    }
+
+    private void recorrerMatriz() throws InterruptedException {
+        int contador = 1;
+        for (int fila = 0; fila < matriz.length && !terminado; fila++) {
+            contador = recorrerFila(fila, contador);
+        }
+    }
+
+    private int recorrerFila(int fila, int contador) throws InterruptedException {
+        int columnas = matriz[fila].length;
+        if (fila % 2 == 0) {
+            // Fila par: izquierda a derecha ->
+            for (int col = 0; col < columnas && !terminado; col++) {
+                procesarCelda(fila, col, contador++);
+            }
+        } else {
+            // Fila impar: derecha a izquierda <-
+            for (int col = columnas - 1; col >= 0 && !terminado; col--) {
+                procesarCelda(fila, col, contador++);
+            }
+        }
+        return contador;
     }
 
     private void procesarCelda(int fila, int col, int valor) throws InterruptedException {
